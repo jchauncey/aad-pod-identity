@@ -16,12 +16,32 @@ az keyvault create -g "$RESOURCE_GROUP" -n "$KEYVAULT_NAME"
 az keyvault secret set --vault-name "$KEYVAULT_NAME" -n "$KEYVAULT_SECRET_NAME" --value test-value
 
 echo 'Creating a keyvault-identity and assign appropriate roles...'
+echo 'Creating identity'
 az identity create -g "$RESOURCE_GROUP" -n keyvault-identity
+echo 'running az identity show'
 IDENTITY_CLIENT_ID=$(az identity show -g "$RESOURCE_GROUP" -n keyvault-identity  --query 'clientId' -otsv)
+echo 'running az identity show'
 IDENTITY_PRINCIPAL_ID=$(az identity show -g "$RESOURCE_GROUP" -n keyvault-identity --query 'principalId' -otsv)
-az role assignment create --role 'Managed Identity Operator' --assignee "$AZURE_CLIENT_ID" --scope "/subscriptions/$SUBSCRIPTION_ID/resourcegroups/$RESOURCE_GROUP/providers/Microsoft.ManagedIdentity/userAssignedIdentities/keyvault-identity" || true
+echo 'running az role assingment create'
+echo ''
+echo ''
+echo ''
+echo ''
+echo ''
+az role assignment create --role 'Managed Identity Operator' --assignee "$AZURE_CLIENT_ID" --scope "/subscriptions/$SUBSCRIPTION_ID/resourcegroups/$RESOURCE_GROUP/providers/Microsoft.ManagedIdentity/userAssignedIdentities/keyvault-identity" --debug || true
+echo ''
+echo ''
+echo ''
+echo ''
+echo ''
+echo ''
+echo ''
+echo ''
+
+echo 'running az keyvault set-policy'
 az keyvault set-policy -n "$KEYVAULT_NAME" --secret-permissions get list --spn "$IDENTITY_CLIENT_ID" || true
 # The following command might need a couple of retries to succeed
+echo 'running az role assignment create again'
 az role assignment create --role Reader --assignee "$IDENTITY_PRINCIPAL_ID" --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.KeyVault/vaults/$KEYVAULT_NAME" || true
 
 echo 'Creating a cluster-identity and assign appropriate roles...'
